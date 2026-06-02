@@ -80,6 +80,8 @@ export default function Task({
     data: deadlineDragData,
   })
 
+  const activeTaskId = useAppStore((state) => state.activeTaskId)
+  const isActive = activeTaskId === task.id || task.tags.includes('#StartTask')
   const dailyNoteInfo = useAppStore((state) => state.dailyNoteInfo)
   const groupBy = useAppStore((state) => state.settings.groupBy)
 
@@ -167,7 +169,9 @@ export default function Task({
 
   return (
     <div
-      className={`relative rounded-icon transition-colors duration-300 w-full min-h-line`}
+      className={`relative rounded-icon transition-colors duration-300 w-full min-h-line ${
+        isActive ? 'border-l-2 border-l-[#e03131] bg-[#e03131]/10' : ''
+      }`}
       data-id={isLink ? '' : task.id}
       data-task={task.status === ' ' ? '' : task.status}
     >
@@ -188,6 +192,24 @@ export default function Task({
             {task.status === 'x' ? <></> : task.status}
           </Button>
         </div>
+
+        {!task.completed && (
+          <div
+            className='flex-none flex items-center justify-center cursor-pointer mr-1'
+            onClick={(ev) => {
+              ev.preventDefault()
+              ev.stopPropagation()
+              setters.setActiveTask(isActive ? null : task.id)
+            }}
+            onPointerDown={(ev) => ev.stopPropagation()}
+            title={isActive ? 'Stop task' : 'Start task'}
+          >
+            <Logo
+              src={isActive ? 'stop-circle' : 'play-circle'}
+              className={isMobile ? 'h-4 w-4' : 'h-3 w-3'}
+            />
+          </div>
+        )}
 
         <div className={`flex w-full flex-grow items-stretch`}>
           <div
@@ -212,6 +234,11 @@ export default function Task({
               openTask(task)
             }}
           >
+            {isActive && (
+              <span className='text-[#e03131] font-semibold mr-1'>
+                #StartTask{' '}
+              </span>
+            )}
             {taskTitle()}
           </div>
           <div

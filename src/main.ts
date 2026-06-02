@@ -58,6 +58,7 @@ type TimeRulerSettings = {
   unScheduledSubtasks: boolean
   openInMain: boolean
   starred: string[]
+  activeTaskId: string | null
 }
 
 export const DEFAULT_SETTINGS: TimeRulerSettings = {
@@ -87,6 +88,7 @@ export const DEFAULT_SETTINGS: TimeRulerSettings = {
   unScheduledSubtasks: true,
   openInMain: false,
   starred: [],
+  activeTaskId: null,
 }
 
 export default class TimeRulerPlugin extends Plugin {

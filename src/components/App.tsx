@@ -90,6 +90,8 @@ export default function App({ apis }: { apis: Required<AppState['apis']> }) {
       apis,
       dailyNoteInfo,
       settings,
+      activeTaskId: apis.obsidian.getSetting('activeTaskId'),
+      activeTaskStartISO: apis.obsidian.getSetting('activeTaskStartISO'),
     })
 
     apis.calendar.loadEvents()

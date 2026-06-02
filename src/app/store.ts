@@ -54,6 +54,8 @@ export type AppState = {
   searchWithinWeeks: [number, number]
   childWidth: number
   starred: string[] // IDs of the starred tasks
+  activeTaskId: string | null
+  activeTaskStartISO?: string
   timer: {
     negative: boolean
     maxSeconds: number | null
@@ -105,6 +107,8 @@ export const useAppStore = createWithEqualityFn<AppState>(() => ({
   },
   recreateWindow: 0,
   starred: [],
+  activeTaskId: null,
+  activeTaskStartISO: undefined,
 }))
 
 export const useAppStoreRef = <T>(callback: (state: AppState) => T) => {
@@ -140,6 +144,39 @@ export const setters = {
     // 2. Propagate to ObsidianAPI and persist
     const obsidianAPI = getters.getObsidianAPI()
     obsidianAPI.setSetting({ starred })
+  },
+  setActiveTask: async (id: string | null) => {
+    const prevId = getters.get('activeTaskId')
+
+    // Remove #StartTask tag from previous active task
+    if (prevId && prevId !== id) {
+      const prevTask = getters.getTask(prevId)
+      if (prevTask?.tags.includes('#StartTask')) {
+        await setters.patchTasks([prevId], {
+          tags: prevTask.tags.filter((t) => t !== '#StartTask'),
+        })
+      }
+    }
+
+    // Add #StartTask tag to new active task
+    if (id) {
+      const task = getters.getTask(id)
+      if (task && !task.tags.includes('#StartTask')) {
+        await setters.patchTasks([id], {
+          tags: [...task.tags, '#StartTask'],
+        })
+      }
+    }
+
+    modify((state) => {
+      state.activeTaskId = id
+      state.activeTaskStartISO = id ? DateTime.now().toISO() : undefined
+    })
+    const obsidianAPI = getters.getObsidianAPI()
+    obsidianAPI.setSetting({
+      activeTaskId: id,
+      activeTaskStartISO: id ? DateTime.now().toISO() : undefined,
+    })
   },
   patchCollapsed: async (ids: string[], collapsed: boolean) => {
     modify((state) => {
